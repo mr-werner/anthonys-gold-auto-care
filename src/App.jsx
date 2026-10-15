@@ -1,13 +1,14 @@
 import blueprintLogo from "./assets/blueprint-webstudio-logo.png";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, ArrowUpRight, BadgeCheck, CheckCircle2, Clock, MapPin, Menu, Minus, Phone, Plus, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, CheckCircle2, Clock, CreditCard, MapPin, Menu, Minus, Phone, Plus, X } from "lucide-react";
 import SITE from "./site.js";
+
 
 // -----------------------------------------------------------------------------
 // All business content lives in src/site.js. This file only lays it out.
 // -----------------------------------------------------------------------------
 
-const { COMPANY, PHONE, PHONE_DISPLAY, EMAIL, ADDRESS, CITY, MAPS_QUERY, FOUNDED, FALLBACK_RATING } = SITE;
+const { COMPANY, PHONE, PHONE_DISPLAY, EMAIL, ADDRESS, CITY, MAPS_QUERY, FALLBACK_RATING } = SITE;
 const GOOGLE_REVIEWS_URL = SITE.GOOGLE_PLACE_ID
   ? `https://search.google.com/local/reviews?placeid=${SITE.GOOGLE_PLACE_ID}`
   : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(MAPS_QUERY)}`;
@@ -188,53 +189,72 @@ function ConceptWidget() {
 }
 
 // -----------------------------------------------------------------------------
+// SIGNATURE MOTIF: gold ridgeline, drawn from the mountains in the shop's logo
+// -----------------------------------------------------------------------------
+
+function Ridge({ className = "" }) {
+  return (
+    <svg className={`ridge ${className}`} viewBox="0 0 1200 90" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 88 L150 70 L260 40 L330 58 L430 12 L520 52 L585 34 L700 76 L790 60 L880 26 L960 50 L1040 38 L1200 80" />
+      <path className="ridge-2" d="M0 88 L180 78 L300 56 L380 70 L470 34 L560 66 L650 54 L760 84 L900 52 L1010 68 L1200 86" />
+    </svg>
+  );
+}
+
+function GoldStar({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className="gold-star">
+      <path d="M12 1.8l3.1 6.9 7.5.8-5.6 5.1 1.6 7.4L12 18.2 5.4 22l1.6-7.4L1.4 9.5l7.5-.8z" />
+    </svg>
+  );
+}
+
+// -----------------------------------------------------------------------------
 // HEADER
 // -----------------------------------------------------------------------------
 
-function BrandMark() {
-  const Icon = SITE.BRAND.icon;
-  return <span className="brand-mark" aria-hidden="true"><Icon strokeWidth={2} /></span>;
-}
-
-function Brand({ onClick }) {
+function Brand({ onClick, footer }) {
   return (
-    <a className="brand" href="#home" onClick={onClick} aria-label={`${COMPANY} home`}>
-      <BrandMark />
-      <span className="brand-text"><strong>{SITE.BRAND.name}</strong><small>{SITE.BRAND.sub}</small></span>
+    <a className={`brand-plate${footer ? " in-footer" : ""}`} href="#home" onClick={onClick} aria-label={`${COMPANY} home`}>
+      <img src={SITE.BRAND.logo} alt={SITE.BRAND.logoAlt} width="812" height="336" />
     </a>
   );
 }
 
-function navItems() {
-  return [
-    ["#services", "Services"],
-    SITE.FEATURE && [`#${SITE.FEATURE.id}`, SITE.FEATURE.nav],
-    ["#about", SITE.ABOUT.nav || "About"],
-    ["#reviews", "Reviews"],
-    ["#visit", SITE.VISIT.nav || "Visit"],
-  ].filter(Boolean);
-}
+const NAV = [
+  ["#services", "Services"],
+  ["#why", "Why Us"],
+  ["#about", "Our Shop"],
+  ["#reviews", "Reviews"],
+  ["#visit", "Visit"],
+];
 
 function SiteHeader() {
   const [menu, setMenu] = useState(false);
   const closeMenu = () => setMenu(false);
-
   return (
     <div className="sticky-header">
-      <div className="announce">
-        <div className="container announce-inner">
-          <span>{SITE.ANNOUNCE}</span>
-          <a href={`tel:${PHONE}`}><Phone size={13} /> {PHONE_DISPLAY}</a>
+      <div className="topbar">
+        <div className="container topbar-inner">
+          <span className="topbar-addr"><MapPin size={13} /> {ADDRESS}, {CITY}</span>
+          <span className="topbar-hours"><Clock size={13} /> {SITE.HOURS_SHORT}</span>
+          <div className="topbar-right">
+            {SITE.SOCIAL_LINKS.filter(({ top }) => top).map(({ name, url, icon: Icon }) => (
+              <a key={name} href={url} target="_blank" rel="noopener noreferrer" aria-label={`${COMPANY} on ${name}`} title={name}><Icon size={14} /></a>
+            ))}
+            <a className="topbar-phone" href={`tel:${PHONE}`}><Phone size={13} /> {PHONE_DISPLAY}</a>
+          </div>
         </div>
       </div>
       <header className="header">
         <div className="container nav">
           <Brand onClick={closeMenu} />
           <nav className={menu ? "links open" : "links"} aria-label="Main navigation">
-            {navItems().map(([href, label]) => <a key={href} href={href} onClick={closeMenu}>{label}</a>)}
+            {NAV.map(([href, label]) => <a key={href} href={href} onClick={closeMenu}>{label}</a>)}
             <a className="links-cta" href="#book" onClick={closeMenu}>{SITE.BOOK.nav}</a>
           </nav>
-          <a className="nav-cta" href="#book">{SITE.BOOK.nav} <ArrowUpRight size={17} /></a>
+          <a className="nav-call" href={`tel:${PHONE}`} aria-label={`Call ${PHONE_DISPLAY}`}><Phone size={17} /><span>{PHONE_DISPLAY}</span></a>
+          <a className="nav-cta" href="#book">{SITE.BOOK.nav}</a>
           <button className="mobile-toggle" type="button" aria-label="Toggle navigation" aria-expanded={menu} onClick={() => setMenu((current) => !current)}>
             {menu ? <X /> : <Menu />}
           </button>
@@ -252,51 +272,45 @@ function Hero({ rating }) {
   const { HERO } = SITE;
   return (
     <section className="hero">
-      <div className="hero-grid" aria-hidden="true" />
+      <Ridge className="hero-ridge" />
       <div className="container hero-inner">
         <div className="hero-copy">
-          <span className="eyebrow light">{HERO.eyebrow}</span>
+          <span className="kicker"><GoldStar size={14} /> {HERO.eyebrow}</span>
           <h1><Title parts={HERO.title} /></h1>
           <p>{HERO.text}</p>
           <div className="hero-actions">
             <a className="btn primary" href="#book">{HERO.cta} <ArrowUpRight size={19} /></a>
             <a className="btn ghost" href={`tel:${PHONE}`}><Phone size={18} /> {PHONE_DISPLAY}</a>
           </div>
-        </div>
-        <aside className="hero-card" aria-label="At a glance">
-          {rating ? (
+          {rating && (
             <a className="hero-rating" href={rating.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-              <span className="stars" aria-hidden="true">★★★★★</span>
               <strong>{rating.rating.toFixed(1)}</strong>
-              <span>on Google · {rating.userRatingCount.toLocaleString()} reviews</span>
+              <span><span className="stars" aria-hidden="true">★★★★★</span><small>{rating.userRatingCount.toLocaleString()} Google reviews</small></span>
             </a>
-          ) : (
-            <div className="hero-rating">
-              <span className="stars" aria-hidden="true">{HERO.badgeKicker}</span>
-              <strong>{HERO.badgeBig}</strong>
-              <span>{HERO.badgeSmall}</span>
-            </div>
           )}
-          <ul>
-            {HERO.card.map(({ icon: Icon, title, text }) => (
-              <li key={title}><Icon size={18} /><span><b>{title}</b>{text}</span></li>
-            ))}
-          </ul>
-        </aside>
-      </div>
-      <div className="container stats">
-        {SITE.STATS(rating).map(([value, label]) => <div key={label}><strong>{value}</strong><span>{label}</span></div>)}
+        </div>
+        <figure className="hero-photo">
+          <div className="hero-frame">
+            <img src={HERO.photo.src} alt={HERO.photo.alt} width="1024" height="768" fetchPriority="high" />
+          </div>
+          <figcaption className="hero-tag">
+            <span>Our crew brings</span>
+            <strong>70+ years</strong>
+            <small>of combined experience</small>
+          </figcaption>
+        </figure>
       </div>
     </section>
   );
 }
 
-function Offers() {
-  if (!SITE.OFFERS?.length) return null;
+function GoldBar() {
   return (
-    <div className="offer-strip" style={{ "--offer-cols": SITE.OFFERS.length }}>
-      <div className="container">
-        {SITE.OFFERS.map(([title, text]) => <article key={title}><strong>{title}</strong><span>{text}</span></article>)}
+    <div className="goldbar">
+      <div className="container goldbar-inner">
+        {SITE.QUICK.map(([label, value]) => (
+          <div key={label}><small>{label}</small><strong>{value}</strong></div>
+        ))}
       </div>
     </div>
   );
@@ -304,91 +318,66 @@ function Offers() {
 
 function Services() {
   const { SERVICES } = SITE;
+  const [active, setActive] = useState(SERVICES.items[0].key);
+  const item = SERVICES.items.find((s) => s.key === active);
   return (
     <section className="section services" id="services">
       <div className="container">
         <div className="section-head">
           <div>
-            <span className="eyebrow">{SERVICES.eyebrow}</span>
+            <span className="kicker dark">{SERVICES.eyebrow}</span>
             <h2><Title parts={SERVICES.title} /></h2>
           </div>
           <p>{SERVICES.text}</p>
         </div>
-        <div className="services-grid">
-          {SERVICES.items.map(({ title, desc, icon: Icon }, index) => (
-            <article className="service-card" key={title}>
-              <div className="service-top">
-                <span className="service-icon"><Icon size={24} strokeWidth={1.6} /></span>
-                <span className="service-num">{String(index + 1).padStart(2, "0")}</span>
-              </div>
+        <div className="bays">
+          <div className="bay-tabs" role="tablist" aria-label="Services">
+            {SERVICES.items.map((s, i) => (
+              <button key={s.key} type="button" role="tab" id={`tab-${s.key}`} aria-selected={active === s.key} aria-controls="bay-panel" className={active === s.key ? "on" : ""} onClick={() => setActive(s.key)}>
+                <span className="bay-num">Bay {i + 1}</span>
+                <span className="bay-name">{s.title}</span>
+                <ArrowRight size={18} />
+              </button>
+            ))}
+          </div>
+          <div className="bay-panel" id="bay-panel" role="tabpanel" aria-labelledby={`tab-${item.key}`}>
+            <div className="bay-photo"><img src={item.photo} alt={`${item.title} at Anthony's Gold Auto Care`} loading="lazy" /></div>
+            <div className="bay-body">
+              <h3>{item.title}</h3>
+              <p>{item.lead}</p>
+              <ul>{item.list.map((li) => <li key={li}><Check size={15} strokeWidth={3} /> {li}</li>)}</ul>
+              <a className="btn dark" href="#book" data-service={item.title}>Request {item.title} <ArrowRight size={16} /></a>
+            </div>
+          </div>
+        </div>
+        <div className="signs">
+          <strong>{SERVICES.signs.title}</strong>
+          {SERVICES.signs.items.map((s) => <span key={s}>{s}</span>)}
+          <a href="#book" data-service="AC & Heating">Book a heater check <ArrowRight size={14} /></a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Standards() {
+  const { STANDARDS } = SITE;
+  return (
+    <section className="section standards" id="why">
+      <Ridge className="standards-ridge" />
+      <div className="container">
+        <div className="section-head light">
+          <div>
+            <span className="kicker">{STANDARDS.eyebrow}</span>
+            <h2><Title parts={STANDARDS.title} /></h2>
+          </div>
+        </div>
+        <div className="ingots">
+          {STANDARDS.items.map(([big, title, desc]) => (
+            <article key={title}>
+              <span className="ingot">{big}</span>
               <h3>{title}</h3>
               <p>{desc}</p>
-              <a href="#book" data-service={title}>{SERVICES.cta} <ArrowRight size={15} /></a>
-            </article>
-          ))}
-        </div>
-        {SERVICES.chips && (
-          <div className="chips-wrap">
-            <div>
-              <h3>{SERVICES.chips.title}</h3>
-              {SERVICES.chips.note && <p>{SERVICES.chips.note}</p>}
-            </div>
-            <div className="chips">{SERVICES.chips.items.map((item) => <span key={item}>{item}</span>)}</div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function Feature() {
-  const { FEATURE } = SITE;
-  if (!FEATURE) return null;
-  return (
-    <section className="section feature" id={FEATURE.id}>
-      <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow light">{FEATURE.eyebrow}</span>
-            <h2><Title parts={FEATURE.title} /></h2>
-          </div>
-          <p>{FEATURE.text}</p>
-        </div>
-        <div className={`feature-grid${FEATURE.cards.length === 3 ? " cols-3" : ""}`}>
-          {FEATURE.cards.map(({ name, icon: Icon, tone, lead, items }) => (
-            <article className="feature-card" key={name} style={tone ? { "--tone": tone } : undefined}>
-              <span className="feature-icon"><Icon size={26} strokeWidth={1.5} /></span>
-              <h3>{name}</h3>
-              <p>{lead}</p>
-              <ul>
-                {items.map((item) => <li key={item}><CheckCircle2 size={15} /> {item}</li>)}
-              </ul>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Process() {
-  const { PROCESS } = SITE;
-  return (
-    <section className="section process">
-      <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow">{PROCESS.eyebrow}</span>
-            <h2><Title parts={PROCESS.title} /></h2>
-          </div>
-          <p>{PROCESS.text}</p>
-        </div>
-        <div className="process-grid">
-          {PROCESS.steps.map(([title, description], index) => (
-            <article key={title}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{title}</h3>
-              <p>{description}</p>
             </article>
           ))}
         </div>
@@ -402,25 +391,18 @@ function About() {
   return (
     <section className="section about" id="about">
       <div className="container about-inner">
-        <div className="about-media" aria-hidden="true">
-          <div className="about-quads">
-            {ABOUT.tiles.map(({ label, icon: Icon, tone }) => (
-              <span className="about-quad" key={label} style={tone ? { "--tone": tone } : undefined}><Icon size={34} strokeWidth={1.4} /><small>{label}</small></span>
-            ))}
-          </div>
-          <div className="about-badge"><strong>{ABOUT.badge[0]}</strong><span>{ABOUT.badge[1]}</span></div>
-        </div>
-        <div>
-          <span className="eyebrow">{ABOUT.eyebrow}</span>
+        <figure className="about-photo">
+          <img src={ABOUT.photo.src} alt={ABOUT.photo.alt} loading="lazy" width="1024" height="768" />
+          <figcaption>{ABOUT.caption}</figcaption>
+          <div className="about-card"><img src={SITE.BRAND.logoCard} alt="Anthony's Gold Auto Care business card: 70 Years Combined Experience, Anthony Gonzales, Owner" loading="lazy" /></div>
+        </figure>
+        <div className="about-copy">
+          <span className="kicker dark">{ABOUT.eyebrow}</span>
           <h2><Title parts={ABOUT.title} /></h2>
-          {ABOUT.text.map((paragraph) => <p className="about-lead" key={paragraph.slice(0, 24)}>{paragraph}</p>)}
-          <div className="credentials">
-            {ABOUT.credentials.map(({ title, desc }) => (
-              <div key={title}>
-                <BadgeCheck size={22} strokeWidth={1.6} />
-                <span><strong>{title}</strong>{desc}</span>
-              </div>
-            ))}
+          {ABOUT.text.map((p) => <p key={p.slice(0, 20)}>{p}</p>)}
+          <div className="owner-sig">
+            <GoldStar size={22} />
+            <span><strong>{ABOUT.owner[0]}</strong><small>{ABOUT.owner[1]}</small></span>
           </div>
         </div>
       </div>
@@ -429,63 +411,37 @@ function About() {
 }
 
 function Reviews({ data, rating }) {
-  const reviews = data?.reviews?.filter((review) => review.text?.text || review.originalText?.text) || [];
+  const live = data?.reviews?.filter((review) => review.text?.text || review.originalText?.text) || [];
   const { REVIEWS } = SITE;
+  const cards = live.length > 0
+    ? live.slice(0, 6).map((r) => [r.text?.text || r.originalText?.text, r.authorAttribution?.displayName || "Google reviewer", ["Google review", r.relativePublishTimeDescription].filter(Boolean).join(" · "), Math.max(0, Math.min(5, Math.round(r.rating || 0)))])
+    : REVIEWS.quotes.map(([t, n]) => [t, n, REVIEWS.quoteSource, 5]);
   return (
     <section className="section reviews" id="reviews">
       <div className="container">
-        <div className="section-head">
+        <div className="reviews-top">
           <div>
-            <span className="eyebrow">CUSTOMER REVIEWS</span>
-            <h2>{rating ? <>Rated {rating.rating.toFixed(1)} by <em>{rating.userRatingCount.toLocaleString()} customers.</em></> : <Title parts={REVIEWS.title} />}</h2>
+            <span className="kicker dark">Customer reviews</span>
+            <h2><Title parts={REVIEWS.title} /></h2>
           </div>
-          <p>{REVIEWS.text}</p>
-        </div>
-        <div className="reviews-summary">
-          <div>
-            <span className="google-wordmark">Google</span>
-            {rating ? (
-              <>
-                <strong>{rating.rating.toFixed(1)} <span className="stars">★★★★★</span></strong>
-                <span>{rating.userRatingCount.toLocaleString()} Google reviews</span>
-              </>
-            ) : (
-              <span>See what customers say about {COMPANY} on Google.</span>
-            )}
-          </div>
-          <div className="reviews-actions">
-            <a className="btn dark" href={rating?.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">Read reviews on Google <ArrowUpRight size={17} /></a>
-            {GOOGLE_WRITE_REVIEW_URL && <a className="btn outline" href={GOOGLE_WRITE_REVIEW_URL} target="_blank" rel="noopener noreferrer">Leave a review</a>}
+          <div className="g-card">
+            <span className="google-wordmark" aria-label="Google"><b>G</b><b>o</b><b>o</b><b>g</b><b>l</b><b>e</b></span>
+            {rating && <strong>{rating.rating.toFixed(1)} <span className="stars" aria-hidden="true">★★★★★</span></strong>}
+            {rating && <small>{rating.userRatingCount.toLocaleString()} reviews</small>}
+            <a className="btn dark" href={rating?.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">Read reviews on Google <ArrowUpRight size={16} /></a>
+            {GOOGLE_WRITE_REVIEW_URL && <a className="g-write" href={GOOGLE_WRITE_REVIEW_URL} target="_blank" rel="noopener noreferrer">Leave a review</a>}
           </div>
         </div>
-        {reviews.length > 0 ? (
-          <>
-            <div className="reviews-grid">
-              {reviews.slice(0, 3).map((review, i) => (
-                <article className="review-card" key={`${review.publishTime || i}-${i}`}>
-                  <div className="stars" aria-label={`${review.rating} out of 5 stars`}>{"★".repeat(Math.max(0, Math.min(5, Math.round(review.rating || 0))))}</div>
-                  <p>{review.text?.text || review.originalText?.text}</p>
-                  <footer>
-                    <strong>{review.authorAttribution?.displayName || "Google reviewer"}</strong>
-                    <small>{review.relativePublishTimeDescription}</small>
-                  </footer>
-                </article>
-              ))}
-            </div>
-            <p className="reviews-attribution">Reviews provided by Google. A limited selection is displayed.</p>
-          </>
-        ) : REVIEWS.quotes?.length > 0 && (
-          <>
-            <div className="quotes-grid">
-              {REVIEWS.quotes.map(([text, name]) => (
-                <article className="quote-card" key={name}>
-                  <blockquote>{text}</blockquote>
-                  <footer>{name}<small>{REVIEWS.quoteSource}</small></footer>
-                </article>
-              ))}
-            </div>
-          </>
-        )}
+        <div className="quote-wall">
+          {cards.map(([text, name, source, stars], i) => (
+            <article className="quote" key={`${name}-${i}`}>
+              <div className="stars" aria-label={`${stars} out of 5 stars`}>{"★".repeat(stars)}</div>
+              <blockquote>{text}</blockquote>
+              <footer><strong>{name}</strong><small>{source}</small></footer>
+            </article>
+          ))}
+        </div>
+        {live.length > 0 && <p className="reviews-attribution">Reviews provided by Google. A limited selection is displayed.</p>}
       </div>
     </section>
   );
@@ -578,13 +534,14 @@ function Book() {
   return (
     <section className="section book" id="book">
       <div className="container book-inner">
-        <div>
-          <span className="eyebrow light">{BOOK.eyebrow}</span>
+        <div className="book-copy">
+          <span className="kicker">{BOOK.eyebrow}</span>
           <h2><Title parts={BOOK.title} /></h2>
           <p>{BOOK.text}</p>
           <ul className="book-points">
             {BOOK.points.map((point) => <li key={point}><CheckCircle2 size={18} /> {point}</li>)}
           </ul>
+          <a className="book-call" href={`tel:${PHONE}`}><Phone size={20} /><span><small>Rather talk it through?</small>{PHONE_DISPLAY}</span></a>
         </div>
         <RequestForm />
       </div>
@@ -600,27 +557,13 @@ function Visit() {
     <section className="section visit" id="visit">
       <div className="container visit-inner">
         <div className="visit-info">
-          <span className="eyebrow">{VISIT.eyebrow}</span>
+          <span className="kicker dark">{VISIT.eyebrow}</span>
           <h2><Title parts={VISIT.title} /></h2>
           <div className="visit-blocks">
-            {ADDRESS && (
-              <div>
-                <MapPin size={20} />
-                <span><small>ADDRESS</small>{ADDRESS}<br />{CITY}</span>
-              </div>
-            )}
-            <div>
-              <Phone size={20} />
-              <span><small>PHONE</small><a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a>{EMAIL && <><br /><a href={`mailto:${EMAIL}`}>{EMAIL}</a></>}</span>
-            </div>
-            {HOURS.length > 0 && (
-              <div>
-                <Clock size={20} />
-                <span><small>HOURS</small>
-                  {HOURS.map(([day, hours]) => <span className="hours-row" key={day}><b>{day}</b>{hours}</span>)}
-                </span>
-              </div>
-            )}
+            <div><MapPin size={20} /><span><small>Address</small>{ADDRESS}<br />{CITY}<em>{SITE.LANDMARK}</em></span></div>
+            <div><Phone size={20} /><span><small>Phone</small><a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a>{EMAIL && <><br /><a href={`mailto:${EMAIL}`}>{EMAIL}</a></>}</span></div>
+            <div><Clock size={20} /><span><small>Hours</small>{HOURS.map(([day, hours]) => <span className="hours-row" key={day}><b>{day}</b>{hours}</span>)}</span></div>
+            <div><CreditCard size={20} /><span><small>Payment</small>{SITE.PAYMENT}</span></div>
           </div>
           <a className="btn dark" href={directions} target="_blank" rel="noopener noreferrer">Get Directions <ArrowUpRight size={17} /></a>
           <p className="areas">{VISIT.areas}</p>
@@ -636,9 +579,10 @@ function Visit() {
 function Footer() {
   return (
     <footer className="footer">
+      <Ridge className="footer-ridge" />
       <div className="container footer-main">
-        <div>
-          <Brand />
+        <div className="footer-brand">
+          <Brand footer />
           <p>{SITE.FOOTER_BLURB}</p>
           <div className="footer-social">
             {SITE.SOCIAL_LINKS.filter(({ url }) => url).map(({ name, url, icon: Icon }) => (
@@ -648,24 +592,24 @@ function Footer() {
         </div>
         <div>
           <b>Services</b>
-          {SITE.SERVICES.items.slice(0, 5).map(({ title }) => <a key={title} href="#services">{title}</a>)}
+          {SITE.SERVICES.items.map(({ title }) => <a key={title} href="#services">{title}</a>)}
         </div>
         <div>
-          <b>{SITE.NOUN === "shop" ? "Shop" : "Company"}</b>
-          {navItems().slice(1).map(([href, label]) => <a key={href} href={href}>{label}</a>)}
+          <b>Shop</b>
+          {NAV.slice(1).map(([href, label]) => <a key={href} href={href}>{label}</a>)}
           <a href="#book">{SITE.BOOK.nav}</a>
         </div>
         <div>
           <b>Contact</b>
           <a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a>
           {EMAIL && <a href={`mailto:${EMAIL}`}>{EMAIL}</a>}
-          {ADDRESS && <span>{ADDRESS}</span>}
-          {ADDRESS && <span>{CITY}</span>}
-          {SITE.HOURS_SHORT && <span>{SITE.HOURS_SHORT}</span>}
+          <span>{ADDRESS}</span>
+          <span>{CITY}</span>
+          <span>{SITE.HOURS_SHORT}</span>
         </div>
       </div>
       <div className="container footer-bottom">
-        <span>© {new Date().getFullYear()} {COMPANY}. Independent design concept, not an official company website.</span>
+        <span>© {new Date().getFullYear()} {COMPANY}, Inc. Independent design concept, not an official company website.</span>
         <a className="footer-studio-brand" href={STUDIO_WEBSITE} target="_blank" rel="noopener noreferrer" aria-label="Website concept by Blueprint WebStudio">
           <span>Concept redesign by</span>
           <span className="studio-logo-mask" style={{ WebkitMaskImage: `url(${blueprintLogo})`, maskImage: `url(${blueprintLogo})` }} aria-hidden="true" />
@@ -705,10 +649,9 @@ export default function App() {
       <SiteHeader />
       <main id="home">
         <Hero rating={rating} />
-        <Offers />
+        <GoldBar />
         <Services />
-        <Feature />
-        <Process />
+        <Standards />
         <About />
         <Reviews data={reviewData} rating={rating} />
         <Book />
